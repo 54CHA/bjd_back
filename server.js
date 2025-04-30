@@ -8,8 +8,35 @@ const app = express();
 const PORT = process.env.PORT || 5001; // Use a different port than the frontend dev server
 const SALT_ROUNDS = 10; // Cost factor for bcrypt hashing
 
+// --- CORS Configuration ---
+// Define allowed origins. Add your Vercel frontend URL and common localhost ports.
+const allowedOrigins = [
+  "https://bjd-three.vercel.app", // Your Vercel frontend URL
+  "http://localhost:5173", // Default Vite dev port
+  "http://localhost:3000", // Common React dev port
+  "https://любимбжд.рф",
+  //  // Your Vercel frontend URL
+  // Add other origins if needed
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests) or from allowed origins
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow standard methods
+  allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
+  credentials: true, // Allow cookies or authorization headers
+};
+
 // Middleware
-app.use(cors()); // Allow requests from the frontend origin
+app.use(cors(corsOptions)); // Use configured CORS options
+app.options("*", cors(corsOptions)); // Enable pre-flight requests for all routes
+
 app.use(express.json()); // Parse JSON request bodies
 
 // --- Database Connection (PostgreSQL) ---
