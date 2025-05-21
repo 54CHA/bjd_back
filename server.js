@@ -15,20 +15,35 @@ const allowedOrigins = [
   "http://localhost:5173", // Default Vite dev port
   "http://localhost:3000", // Common React dev port
   "https://любимбжд.рф",
-  //  // Your Vercel frontend URL
+  "http://localhost:5174",
   // Add other origins if needed
 ];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests) or from allowed origins
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
+    // For debugging - log the origin
+    console.log("Request origin:", origin);
+    
+    // Allow requests with no origin (like mobile apps, curl requests, or same origin)
+    if (!origin) {
+      return callback(null, true);
     }
+    
+    // Check if origin is allowed
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // If you want to see what origins are being rejected, log them
+    console.error(`Origin ${origin} not allowed by CORS`);
+    
+    // For development purposes, you can temporarily allow all origins
+    // return callback(null, true);
+    
+    // Or keep the original behavior to reject disallowed origins
+    callback(new Error("Not allowed by CORS"));
   },
-  methods: "GET,HEAD,PUT,PATCH,POST,DELETE", // Allow standard methods
+  methods: "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS", // Add OPTIONS explicitly
   allowedHeaders: ["Content-Type", "Authorization"], // Allow necessary headers
   credentials: true, // Allow cookies or authorization headers
 };
@@ -396,6 +411,15 @@ app.post("/api/scores", async (req, res) => {
 // Basic root route for testing
 app.get("/", (req, res) => {
   res.send("Earthquake Survival Backend (PostgreSQL) is running!");
+});
+
+// CORS debug route
+app.get("/api/cors-test", (req, res) => {
+  res.json({
+    message: "CORS is working correctly!",
+    origin: req.headers.origin || "No origin header",
+    headers: req.headers,
+  });
 });
 
 // Start the server
